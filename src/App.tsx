@@ -1016,8 +1016,8 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-500 py-10 text-center">
         <div className="container mx-auto px-4">
-          <p className="text-sm font-medium">© 2024 <span className="text-white">{data.groupName}</span> — Dibuat dengan ❤️ untuk kemudahan administrasi</p>
-          <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Data disimpan di browser lokal Anda</p>
+          <p className="text-sm font-medium">© 2026 <span className="text-white">{data.groupName}</span> — Developer AiDesign💻</p>
+          <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Lakukan konfirmasi jika terjadi masalah</p>
         </div>
       </footer>
 
