@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -32,8 +32,19 @@
     @apply bg-slate-50 text-slate-900 antialiased selection:bg-blue-100;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Smooth scrolling for all elements */
+  * {
+    scroll-behavior: smooth;
+  }
+
+  /* Better touch targets on mobile */
+  button, a, input, select, textarea {
+    touch-action: manipulation;
+  }
 }
 
+/* ── Avatar Gradients ── */
 .avatar-0  { background: linear-gradient(135deg, #3b82f6, #6366f1); }
 .avatar-1  { background: linear-gradient(135deg, #10b981, #059669); }
 .avatar-2  { background: linear-gradient(135deg, #f59e0b, #ef4444); }
@@ -44,3 +55,68 @@
 .avatar-7  { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
 .avatar-8  { background: linear-gradient(135deg, #6366f1, #06b6d4); }
 .avatar-9  { background: linear-gradient(135deg, #84cc16, #10b981); }
+
+/* ── Custom Scrollbar (desktop) ── */
+@media (pointer: fine) {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* ── Mobile-specific overrides ── */
+@media (max-width: 640px) {
+  /* Tighter padding on small screens */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Smaller stat cards */
+  .stat-card-value {
+    font-size: 1.125rem;
+  }
+
+  /* Better modal sizing on mobile */
+  .fixed.inset-0 {
+    padding: 0.75rem;
+  }
+
+  /* Prevent horizontal overflow */
+  html, body {
+    overflow-x: hidden;
+  }
+}
+
+/* ── Safe area insets for notched phones ── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  footer {
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
+  }
+  header {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ── Print Styles ── */
+@media print {
+  header, footer, button {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+    box-shadow: none !important;
+  }
+}

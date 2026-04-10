@@ -469,18 +469,19 @@ export default function App() {
 
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-              <Wallet size={22} />
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
+              <Wallet size={18} className="sm:hidden" />
+              <Wallet size={22} className="hidden sm:block" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">{data.groupName}</h1>
-              <p className="text-xs text-slate-500 hidden sm:block">{data.groupDescription}</p>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-lg font-bold text-slate-900 leading-tight truncate">{data.groupName}</h1>
+              <p className="text-[10px] sm:text-xs text-slate-500 hidden sm:block">{data.groupDescription}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {isAdmin && (
               <div className="hidden md:flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-full text-xs font-bold">
                 <ShieldCheck size={14} />
@@ -492,12 +493,12 @@ export default function App() {
               <span className="hidden sm:inline">Bagikan</span>
             </button>
             {!isAdmin ? (
-              <button onClick={() => setShowLoginModal(true)} className="px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 text-sm font-medium shadow-md shadow-blue-200">
+              <button onClick={() => setShowLoginModal(true)} className="px-2.5 py-2 sm:px-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 text-sm font-medium shadow-md shadow-blue-200">
                 <Lock size={16} />
                 <span className="hidden sm:inline">Admin</span>
               </button>
             ) : (
-              <button onClick={() => setShowLogoutConfirm(true)} className="px-3 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all flex items-center gap-2 text-sm font-medium shadow-md shadow-red-200">
+              <button onClick={() => setShowLogoutConfirm(true)} className="px-2.5 py-2 sm:px-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all flex items-center gap-2 text-sm font-medium shadow-md shadow-red-200">
                 <LogOut size={16} />
                 <span className="hidden sm:inline">Logout</span>
               </button>
@@ -507,47 +508,51 @@ export default function App() {
       </header>
 
       {/* Hero Stats */}
-      <section className="py-6 sm:py-8">
+      <section className="py-4 sm:py-6 lg:py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3 sm:gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
-                <Users size={24} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Users size={20} className="sm:hidden" />
+                <Users size={24} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total Anggota</p>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{formatNumber(stats.totalMembers)}</h3>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">Total Anggota</p>
+                <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900">{formatNumber(stats.totalMembers)}</h3>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+            <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3 sm:gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-cyan-500" />
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
-                <CheckCircle2 size={24} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <CheckCircle2 size={20} className="sm:hidden" />
+                <CheckCircle2 size={24} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Sudah Lunas</p>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{formatCurrency(stats.totalCollected)}</h3>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">Sudah Lunas</p>
+                <h3 className="text-base sm:text-xl md:text-2xl font-extrabold text-slate-900 truncate">{formatCurrency(stats.totalCollected)}</h3>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+            <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3 sm:gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-amber-500" />
-              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-xl shrink-0">
-                <Clock size={24} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                <Clock size={20} className="sm:hidden" />
+                <Clock size={24} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Belum Bayar</p>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{formatCurrency(stats.totalPending)}</h3>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">Belum Bayar</p>
+                <h3 className="text-base sm:text-xl md:text-2xl font-extrabold text-slate-900 truncate">{formatCurrency(stats.totalPending)}</h3>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+            <div className="bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex items-center gap-3 sm:gap-4 relative overflow-hidden group hover:-translate-y-1 transition-transform">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-blue-500" />
-              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
-                <CalendarDays size={24} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <CalendarDays size={20} className="sm:hidden" />
+                <CalendarDays size={24} className="hidden sm:block" />
               </div>
-              <div>
-                <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Total Periode</p>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{formatNumber(stats.totalPeriods)}</h3>
+              <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 sm:mb-1">Total Periode</p>
+                <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900">{formatNumber(stats.totalPeriods)}</h3>
               </div>
             </div>
           </div>
@@ -558,50 +563,54 @@ export default function App() {
       <main className="flex-1 pb-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-            <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-200 flex gap-1 w-full overflow-x-auto no-scrollbar">
+            <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-200 flex gap-0.5 sm:gap-1 w-full overflow-x-auto no-scrollbar">
               <button 
                 onClick={() => setActiveTab('table')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'table' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-1 justify-center sm:flex-none ${activeTab === 'table' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
               >
-                <TableIcon size={16} />
+                <TableIcon size={15} />
                 <span>Tabel</span>
               </button>
               <button 
                 onClick={() => setActiveTab('rekap')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'rekap' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-1 justify-center sm:flex-none ${activeTab === 'rekap' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
               >
-                <BarChart3 size={16} />
+                <BarChart3 size={15} />
                 <span>Rekap</span>
               </button>
               <button 
                 onClick={() => setActiveTab('members')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'members' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-1 justify-center sm:flex-none ${activeTab === 'members' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
               >
-                <Users size={16} />
-                <span>Anggota</span>
+                <Users size={15} />
+                <span className="hidden xs:inline">Anggota</span>
+                <span className="xs:hidden">Angg.</span>
               </button>
               <button 
                 onClick={() => setActiveTab('chart')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'chart' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-1 justify-center sm:flex-none ${activeTab === 'chart' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}
               >
-                <TrendingUp size={16} />
+                <TrendingUp size={15} />
                 <span>Grafik</span>
               </button>
             </div>
 
             {isAdmin && (
-              <div className="flex flex-wrap gap-2">
-                <button onClick={() => setShowAddMemberModal(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 transition-all shadow-md shadow-emerald-100">
-                  <UserPlus size={16} />
-                  <span>Tambah Anggota</span>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <button onClick={() => setShowAddMemberModal(true)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-600 transition-all shadow-md shadow-emerald-100">
+                  <UserPlus size={15} />
+                  <span className="hidden sm:inline">Tambah Anggota</span>
+                  <span className="sm:hidden">Anggota</span>
                 </button>
-                <button onClick={() => setShowAddPeriodModal(true)} className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 transition-all shadow-md shadow-amber-100">
-                  <CalendarPlus size={16} />
-                  <span>Tambah Periode</span>
+                <button onClick={() => setShowAddPeriodModal(true)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-amber-500 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-amber-600 transition-all shadow-md shadow-amber-100">
+                  <CalendarPlus size={15} />
+                  <span className="hidden sm:inline">Tambah Periode</span>
+                  <span className="sm:hidden">Periode</span>
                 </button>
-                <button onClick={() => setShowSettingsModal(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-md shadow-slate-200">
-                  <Settings size={16} />
-                  <span>Pengaturan</span>
+                <button onClick={() => setShowSettingsModal(true)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-slate-700 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-slate-800 transition-all shadow-md shadow-slate-200">
+                  <Settings size={15} />
+                  <span className="hidden sm:inline">Pengaturan</span>
+                  <span className="sm:hidden">Setting</span>
                 </button>
               </div>
             )}
@@ -1014,10 +1023,10 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-500 py-10 text-center">
+      <footer className="bg-slate-900 text-slate-500 py-8 sm:py-10 text-center">
         <div className="container mx-auto px-4">
-          <p className="text-sm font-medium">© 2026 <span className="text-white">{data.groupName}</span> — Developer AiDesign💻</p>
-          <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Lakukan konfirmasi jika terjadi masalah</p>
+          <p className="text-xs sm:text-sm font-medium">© {new Date().getFullYear()} <span className="text-white">{data.groupName}</span> — Dibuat dengan ❤️ untuk kemudahan administrasi</p>
+          <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Data disimpan di browser lokal Anda</p>
         </div>
       </footer>
 
