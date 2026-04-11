@@ -1,3 +1,9 @@
+import { getDocs } from "firebase/firestore";
+
+import React, { useState } from "react";
+import { db } from "./lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -94,6 +100,53 @@ export default function App() {
     return DEFAULT_DATA;
   });
 
+  // 🔥 AMBIL DATA
+  const ambilDataFirebase = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "catatan"));
+
+      let dataTerakhir: any = null;
+
+      querySnapshot.forEach((doc) => {
+        dataTerakhir = doc.data().data;
+      });
+
+      if (dataTerakhir) {
+        setData(dataTerakhir);
+        console.log("✅ Data berhasil diambil dari Firebase");
+      }
+    } catch (error) {
+      console.error("❌ Error ambil data:", error);
+    }
+  };
+
+  // 🔥 SIMPAN DATA
+  const simpanKeFirebase = async (data: any) => {
+    try {
+      await addDoc(collection(db, "catatan"), {
+        data: data,
+        createdAt: new Date()
+      });
+      console.log("✅ Data masuk Firebase");
+    } catch (error) {
+      console.error("❌ Error:", error);
+    }
+  };
+
+  // 🔥 AMBIL SAAT LOAD
+  useEffect(() => {
+    ambilDataFirebase();
+  }, []);
+
+  // 🔥 SIMPAN SAAT DATA BERUBAH
+  useEffect(() => {
+    localStorage.setItem("kasAppData", JSON.stringify(data));
+    simpanKeFirebase(data);
+  }, [data]);
+
+  // ... lanjut UI kamu
+}
+
   const [isAdmin, setIsAdmin] = useState(() => {
     return sessionStorage.getItem("kasAdmin") === "true";
   });
@@ -130,9 +183,11 @@ export default function App() {
 
   // --- Effects ---
   useEffect(() => {
-    localStorage.setItem("kasAppData", JSON.stringify(data));
-  }, [data]);
+  localStorage.setItem("kasAppData", JSON.stringify(data));
 
+  simpanKeFirebase(data); // ✅ di dalam
+}, [data]);
+  
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 3000);
@@ -1025,8 +1080,8 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-500 py-8 sm:py-10 text-center">
         <div className="container mx-auto px-4">
-          <p className="text-xs sm:text-sm font-medium">© {new Date().getFullYear()} <span className="text-white">{data.groupName}</span> — Developer AiDesign Wonogiri💻</p>
-          <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Konfirmasi jika terjadi error</p>
+          <p className="text-xs sm:text-sm font-medium">© {new Date().getFullYear()} <span className="text-white">{data.groupName}</span> — Dibuat dengan ❤️ untuk kemudahan administrasi</p>
+          <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Data disimpan di browser lokal Anda</p>
         </div>
       </footer>
 
