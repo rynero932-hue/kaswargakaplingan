@@ -8,22 +8,22 @@ export const DEFAULT_DATA: AppData = {
   members: [
     {
       id: "m1",
-      name: "Bapak Ahmad",
+      name: "Ilham",
       payments: { "2024-1": "paid", "2024-2": "paid", "2024-3": "unpaid", "2024-4": "unpaid" }
     },
     {
       id: "m2",
-      name: "Ibu Budi",
+      name: "Ibrahim",
       payments: { "2024-1": "paid", "2024-2": "unpaid", "2024-3": "paid", "2024-4": "unpaid" }
     },
     {
       id: "m3",
-      name: "Bapak Candra",
+      name: "Yahya",
       payments: { "2024-1": "paid", "2024-2": "paid", "2024-3": "paid", "2024-4": "paid" }
     },
     {
       id: "m4",
-      name: "Ibu Dewi",
+      name: "Saad",
       payments: { "2024-1": "unpaid", "2024-2": "unpaid", "2024-3": "unpaid", "2024-4": "unpaid" }
     },
     {
@@ -33,15 +33,15 @@ export const DEFAULT_DATA: AppData = {
     },
     {
       id: "m6",
-      name: "Ibu Fitri",
+      name: "Falih",
       payments: { "2024-1": "paid", "2024-2": "unpaid", "2024-3": "unpaid", "2024-4": "paid" }
     }
   ],
   periods: [
-    { id: "2024-1", label: "Jan 2024", month: 1, year: 2024, amount: 10000 },
-    { id: "2024-2", label: "Feb 2024", month: 2, year: 2024, amount: 10000 },
-    { id: "2024-3", label: "Mar 2024", month: 3, year: 2024, amount: 10000 },
-    { id: "2024-4", label: "Apr 2024", month: 4, year: 2024, amount: 10000 }
+    { id: "2024-1", label: "Jan 2026", month: 1, year: 2024, amount: 10000 },
+    { id: "2024-2", label: "Feb 2026", month: 2, year: 2024, amount: 10000 },
+    { id: "2024-3", label: "Mar 2026", month: 3, year: 2024, amount: 10000 },
+    { id: "2024-4", label: "Apr 2026", month: 4, year: 2024, amount: 10000 }
   ]
 };
 
