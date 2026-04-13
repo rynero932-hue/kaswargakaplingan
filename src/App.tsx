@@ -1,15 +1,10 @@
-import { getDocs } from "firebase/firestore";
-
-import React, { useState } from "react";
-import { db } from "./lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+// Bug Fix: Hapus duplikasi import React & useState. Gabungkan semua import menjadi satu.
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Wallet, 
   ShieldCheck, 
@@ -54,6 +49,10 @@ import {
 } from 'recharts';
 import { AppData, Member, Period, PaymentStatus } from './types';
 import { DEFAULT_DATA, MONTHS, MONTHS_SHORT } from './constants';
+
+// Bug Fix: Import Firebase dipindah ke sini, setelah semua import lain
+import { getDocs, doc, setDoc, collection, addDoc } from "firebase/firestore";
+import { db } from "./lib/firebase";
 
 // --- Helper Functions ---
 const formatCurrency = (amount: number) => {
@@ -100,18 +99,25 @@ export default function App() {
     return DEFAULT_DATA;
   });
 
-  // 🔥 AMBIL DATA
+  // Bug Fix: Gunakan ref untuk menyimpan ID dokumen Firebase agar tidak membuat
+  // dokumen baru setiap kali data berubah (overwrite dokumen yang sama).
+  const firebaseDocId = useRef<string | null>(null);
+
+  // 🔥 AMBIL DATA dari Firebase
   const ambilDataFirebase = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "catatan"));
 
       let dataTerakhir: any = null;
+      let docId: string | null = null;
 
-      querySnapshot.forEach((doc) => {
-        dataTerakhir = doc.data().data;
+      querySnapshot.forEach((docSnap) => {
+        dataTerakhir = docSnap.data().data;
+        docId = docSnap.id; // simpan ID dokumen
       });
 
       if (dataTerakhir) {
+        firebaseDocId.current = docId;
         setData(dataTerakhir);
         console.log("✅ Data berhasil diambil dari Firebase");
       }
@@ -120,33 +126,42 @@ export default function App() {
     }
   };
 
-  // 🔥 SIMPAN DATA
-  const simpanKeFirebase = async (data: any) => {
+  // Bug Fix: simpanKeFirebase sekarang UPDATE dokumen yang sama (setDoc),
+  // bukan membuat dokumen baru terus-menerus (addDoc).
+  const simpanKeFirebase = async (dataToSave: any) => {
     try {
-      await addDoc(collection(db, "catatan"), {
-        data: data,
-        createdAt: new Date()
-      });
-      console.log("✅ Data masuk Firebase");
+      if (firebaseDocId.current) {
+        // Update dokumen yang sudah ada
+        await setDoc(doc(db, "catatan", firebaseDocId.current), {
+          data: dataToSave,
+          updatedAt: new Date()
+        });
+      } else {
+        // Buat dokumen baru hanya jika belum ada
+        const docRef = await addDoc(collection(db, "catatan"), {
+          data: dataToSave,
+          createdAt: new Date()
+        });
+        firebaseDocId.current = docRef.id;
+      }
+      console.log("✅ Data tersimpan ke Firebase");
     } catch (error) {
-      console.error("❌ Error:", error);
+      console.error("❌ Error simpan data:", error);
     }
   };
 
-  // 🔥 AMBIL SAAT LOAD
+  // 🔥 AMBIL DATA saat pertama load
   useEffect(() => {
     ambilDataFirebase();
   }, []);
 
-  // 🔥 SIMPAN SAAT DATA BERUBAH
+  // Bug Fix: Hapus duplikasi useEffect. Hanya ada SATU useEffect untuk simpan data.
   useEffect(() => {
     localStorage.setItem("kasAppData", JSON.stringify(data));
     simpanKeFirebase(data);
   }, [data]);
 
-  // ... lanjut UI kamu
-}
-
+  // --- State lainnya (Bug Fix: dipindah ke dalam fungsi App, bukan di luar) ---
   const [isAdmin, setIsAdmin] = useState(() => {
     return sessionStorage.getItem("kasAdmin") === "true";
   });
@@ -182,12 +197,6 @@ export default function App() {
   const [settingsNewPassword, setSettingsNewPassword] = useState("");
 
   // --- Effects ---
-  useEffect(() => {
-  localStorage.setItem("kasAppData", JSON.stringify(data));
-
-  simpanKeFirebase(data); // ✅ di dalam
-}, [data]);
-  
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 3000);
@@ -827,132 +836,81 @@ export default function App() {
                 <div className="mb-6">
                   <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <TrendingUp size={20} className="text-blue-600" />
-                    Visualisasi Pendapatan Kas
+                    Grafik Iuran Per Periode
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">Total dana terkumpul per periode iuran</p>
+                  <p className="text-xs text-slate-400 mt-1">Total iuran yang terkumpul per periode</p>
                 </div>
-                
-                <div className="h-[400px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis 
-                        dataKey="name" 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fill: '#64748b', fontSize: 12 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tick={{ fill: '#64748b', fontSize: 12 }}
-                        tickFormatter={(value) => `Rp ${value/1000}k`}
-                      />
-                      <Tooltip 
-                        cursor={{ fill: '#f8fafc' }}
-                        contentStyle={{ 
-                          borderRadius: '16px', 
-                          border: 'none', 
-                          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                          padding: '12px'
-                        }}
-                        formatter={(value: number) => [formatCurrency(value), 'Terkumpul']}
-                      />
-                      <Bar dataKey="collected" radius={[8, 8, 0, 0]} barSize={40}>
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#8b5cf6'} />
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={chartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} />
+                      <YAxis tickFormatter={(v) => formatCurrency(v)} tick={{ fontSize: 10, fill: '#94a3b8' }} width={90} />
+                      <Tooltip formatter={(v: number) => formatCurrency(v)} labelStyle={{ fontWeight: 'bold' }} />
+                      <Bar dataKey="collected" name="Terkumpul" radius={[8, 8, 0, 0]}>
+                        {chartData.map((_, i) => (
+                          <Cell key={i} fill={`hsl(${210 + i * 20}, 80%, 55%)`} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
+                ) : (
+                  <div className="py-20 text-center">
+                    <BarChart3 size={48} className="mx-auto text-slate-200 mb-4" />
+                    <p className="text-slate-400 font-medium">Belum ada data untuk ditampilkan</p>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'rekap' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {data.periods.length > 0 ? [...data.periods].reverse().map(p => {
-                  let paid = 0;
-                  let unpaid = 0;
-                  let exempt = 0;
-                  let collected = 0;
-
-                  data.members.forEach(m => {
-                    const status = m.payments[p.id] || "unpaid";
-                    if (status === "paid") {
-                      paid++;
-                      collected += p.amount;
-                    } else if (status === "unpaid") {
-                      unpaid++;
-                    } else {
-                      exempt++;
-                    }
-                  });
-
-                  const pct = data.members.length > 0 ? Math.round((paid / (data.members.length - exempt)) * 100) || 0 : 0;
-                  const unpaidMembers = data.members.filter(m => (m.payments[p.id] || "unpaid") === "unpaid");
-
-                  return (
-                    <div key={p.id} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:-translate-y-1 transition-transform">
-                      <div className="bg-slate-900 p-5 text-white flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-bold flex items-center gap-2">
-                            <CalendarDays size={16} className="text-blue-400" />
-                            {p.label}
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-6 border-b border-slate-100">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <BarChart3 size={20} className="text-blue-600" />
+                    Rekap Per Periode
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">Ringkasan pembayaran per periode iuran</p>
+                </div>
+                {data.periods.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {data.periods.map((p) => {
+                      let paid = 0, unpaid = 0, exempt = 0;
+                      data.members.forEach(m => {
+                        const s = m.payments[p.id] || 'unpaid';
+                        if (s === 'paid') paid++;
+                        else if (s === 'unpaid') unpaid++;
+                        else exempt++;
+                      });
+                      const total = data.members.length;
+                      const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+                      return (
+                        <div key={p.id} className="p-5 hover:bg-slate-50 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h3 className="font-bold text-slate-800">{p.label}</h3>
+                              <p className="text-xs text-slate-400">{formatCurrency(p.amount)} / orang</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-black text-emerald-600 text-lg">{formatCurrency(paid * p.amount)}</p>
+                              <p className="text-xs text-slate-400">dari {formatCurrency(total * p.amount)}</p>
+                            </div>
                           </div>
-                          <div className="text-[10px] opacity-70 mt-0.5">Iuran: {formatCurrency(p.amount)}</div>
-                        </div>
-                        <div className="text-lg font-black text-emerald-400">{formatCurrency(collected)}</div>
-                      </div>
-                      <div className="p-5">
-                        <div className="h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 mb-5">
-                          <div className="bg-slate-50 p-3 rounded-2xl text-center">
-                            <div className="text-lg font-black text-emerald-600 leading-tight">{paid}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase">Lunas</div>
+                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
+                            <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
                           </div>
-                          <div className="bg-slate-50 p-3 rounded-2xl text-center">
-                            <div className="text-lg font-black text-red-600 leading-tight">{unpaid}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase">Belum</div>
-                          </div>
-                          <div className="bg-slate-50 p-3 rounded-2xl text-center">
-                            <div className="text-lg font-black text-slate-500 leading-tight">{exempt}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase">Bebas</div>
+                          <div className="flex gap-3 text-xs font-bold">
+                            <span className="text-emerald-600">{paid} Lunas</span>
+                            <span className="text-red-600">{unpaid} Belum</span>
+                            <span className="text-slate-400">{exempt} Bebas</span>
+                            <span className="ml-auto text-slate-500">{pct}%</span>
                           </div>
                         </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <Clock size={12} /> Belum Bayar
-                          </div>
-                          <div className="space-y-2">
-                            {unpaidMembers.length > 0 ? unpaidMembers.slice(0, 5).map(m => (
-                              <div key={m.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-50 last:border-0">
-                                <span className="font-medium text-slate-700 flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                  {m.name}
-                                </span>
-                                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Belum</span>
-                              </div>
-                            )) : (
-                              <div className="text-center py-4 text-xs text-emerald-600 font-bold bg-emerald-50 rounded-2xl">
-                                🎉 Semua sudah lunas!
-                              </div>
-                            )}
-                            {unpaidMembers.length > 5 && (
-                              <div className="text-center text-[10px] text-slate-400 font-medium pt-1">
-                                +{unpaidMembers.length - 5} lainnya belum bayar
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }) : (
-                  <div className="col-span-full py-20 text-center">
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center">
                     <CalendarDays size={48} className="mx-auto text-slate-200 mb-4" />
                     <p className="text-slate-400 font-medium">Belum ada periode yang ditambahkan</p>
                   </div>
@@ -961,118 +919,109 @@ export default function App() {
             )}
 
             {activeTab === 'members' && (
-              <div className="space-y-6">
-                <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                      <Filter size={18} />
-                    </div>
-                    <span className="text-sm font-bold text-slate-700">Filter Status:</span>
+              <div>
+                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                  <div className="relative flex-1">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder="Cari anggota..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 shadow-sm transition-all"
+                    />
                   </div>
-                  <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    {(['all', 'paid', 'unpaid', 'exempt'] as const).map((status) => (
+                  <div className="flex gap-2">
+                    {(['all', 'paid', 'unpaid', 'exempt'] as const).map(f => (
                       <button
-                        key={status}
-                        onClick={() => setMemberStatusFilter(status)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                          memberStatusFilter === status 
+                        key={f}
+                        onClick={() => setMemberStatusFilter(f)}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
+                          memberStatusFilter === f 
                             ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' 
                             : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
                         }`}
                       >
-                        {status === 'all' ? 'Semua' : status === 'paid' ? 'Lunas' : status === 'unpaid' ? 'Belum' : 'Bebas'}
+                        {f === 'all' ? 'Semua' : f === 'paid' ? 'Lunas' : f === 'unpaid' ? 'Belum' : 'Bebas'}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredMembers.length > 0 ? filteredMembers.map((m, idx) => {
-                  let paid = 0;
-                  let unpaid = 0;
-                  let exempt = 0;
-                  let totalPaid = 0;
-                  let totalOwed = 0;
+                    let paid = 0, unpaid = 0, exempt = 0, totalPaid = 0, totalOwed = 0;
+                    data.periods.forEach(p => {
+                      const s = m.payments[p.id] || 'unpaid';
+                      if (s === 'paid') { paid++; totalPaid += p.amount; }
+                      else if (s === 'unpaid') { unpaid++; totalOwed += p.amount; }
+                      else exempt++;
+                    });
+                    const total = data.periods.length;
+                    const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
 
-                  data.periods.forEach(p => {
-                    const status = m.payments[p.id] || "unpaid";
-                    if (status === "paid") {
-                      paid++;
-                      totalPaid += p.amount;
-                    } else if (status === "unpaid") {
-                      unpaid++;
-                      totalOwed += p.amount;
-                    } else {
-                      exempt++;
-                    }
-                  });
-
-                  const total = data.periods.length;
-                  const pct = total > 0 ? Math.round((paid / (total - exempt)) * 100) || 0 : 0;
-
-                  return (
-                    <div key={m.id} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:-translate-y-1 transition-transform group">
-                      <div className="p-5 flex items-center gap-4 relative">
-                        <div className="absolute top-4 left-4 w-6 h-6 bg-slate-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-10 shadow-sm">
-                          {idx + 1}
-                        </div>
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg ${getAvatarClass(idx)}`}>
-                          {getInitials(m.name)}
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold text-slate-900">{m.name}</div>
-                          <div className="text-xs text-slate-400 font-medium">{pct}% sudah lunas</div>
-                        </div>
-                        {isAdmin && (
-                          <button 
-                            onClick={() => setDeleteConfirm({ type: 'member', id: m.id, name: m.name })}
-                            className="absolute top-4 right-4 p-2 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                      <div className="px-5 pb-5">
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                          <div className="bg-slate-50 p-2.5 rounded-2xl text-center">
-                            <div className="text-lg font-black text-emerald-600 leading-tight">{paid}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase">Lunas</div>
+                    return (
+                      <div key={m.id} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:-translate-y-1 transition-transform group">
+                        <div className="p-5 flex items-center gap-4 relative">
+                          <div className="absolute top-4 left-4 w-6 h-6 bg-slate-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center z-10 shadow-sm">
+                            {idx + 1}
                           </div>
-                          <div className="bg-slate-50 p-2.5 rounded-2xl text-center">
-                            <div className="text-lg font-black text-red-600 leading-tight">{unpaid}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase">Belum</div>
+                          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg ${getAvatarClass(idx)}`}>
+                            {getInitials(m.name)}
                           </div>
-                          <div className="bg-slate-50 p-2.5 rounded-2xl text-center">
-                            <div className="text-lg font-black text-slate-500 leading-tight">{exempt}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase">Bebas</div>
+                          <div>
+                            <div className="text-lg font-bold text-slate-900">{m.name}</div>
+                            <div className="text-xs text-slate-400 font-medium">{pct}% sudah lunas</div>
                           </div>
+                          {isAdmin && (
+                            <button 
+                              onClick={() => setDeleteConfirm({ type: 'member', id: m.id, name: m.name })}
+                              className="absolute top-4 right-4 p-2 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full mb-4 overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
-                        </div>
-                        <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl text-xs">
-                          <div className="flex flex-col">
-                            <span className="text-slate-400 font-bold uppercase text-[9px] mb-0.5">Total Bayar</span>
-                            <span className="text-emerald-700 font-black">{formatCurrency(totalPaid)}</span>
+                        <div className="px-5 pb-5">
+                          <div className="grid grid-cols-3 gap-2 mb-4">
+                            <div className="bg-slate-50 p-2.5 rounded-2xl text-center">
+                              <div className="text-lg font-black text-emerald-600 leading-tight">{paid}</div>
+                              <div className="text-[10px] text-slate-400 font-bold uppercase">Lunas</div>
+                            </div>
+                            <div className="bg-slate-50 p-2.5 rounded-2xl text-center">
+                              <div className="text-lg font-black text-red-600 leading-tight">{unpaid}</div>
+                              <div className="text-[10px] text-slate-400 font-bold uppercase">Belum</div>
+                            </div>
+                            <div className="bg-slate-50 p-2.5 rounded-2xl text-center">
+                              <div className="text-lg font-black text-slate-500 leading-tight">{exempt}</div>
+                              <div className="text-[10px] text-slate-400 font-bold uppercase">Bebas</div>
+                            </div>
                           </div>
-                          <div className="w-[1px] h-6 bg-slate-200" />
-                          <div className="flex flex-col text-right">
-                            <span className="text-slate-400 font-bold uppercase text-[9px] mb-0.5">Tunggakan</span>
-                            <span className="text-red-700 font-black">{formatCurrency(totalOwed)}</span>
+                          <div className="h-1.5 bg-slate-100 rounded-full mb-4 overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
+                          </div>
+                          <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl text-xs">
+                            <div className="flex flex-col">
+                              <span className="text-slate-400 font-bold uppercase text-[9px] mb-0.5">Total Bayar</span>
+                              <span className="text-emerald-700 font-black">{formatCurrency(totalPaid)}</span>
+                            </div>
+                            <div className="w-[1px] h-6 bg-slate-200" />
+                            <div className="flex flex-col text-right">
+                              <span className="text-slate-400 font-bold uppercase text-[9px] mb-0.5">Tunggakan</span>
+                              <span className="text-red-700 font-black">{formatCurrency(totalOwed)}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    );
+                  }) : (
+                    <div className="col-span-full py-20 text-center">
+                      <Users size={48} className="mx-auto text-slate-200 mb-4" />
+                      <p className="text-slate-400 font-medium">Belum ada anggota yang ditambahkan</p>
                     </div>
-                  );
-                }) : (
-                  <div className="col-span-full py-20 text-center">
-                    <Users size={48} className="mx-auto text-slate-200 mb-4" />
-                    <p className="text-slate-400 font-medium">Belum ada anggota yang ditambahkan</p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </div>
         </div>
       </main>
