@@ -516,7 +516,7 @@ export default function App() {
         <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
           <Wallet size={28} />
         </div>
-        <p className="text-slate-500 font-medium text-sm">Memuat data dari server...</p>
+        <p className="text-slate-500 font-medium text-sm">Loading sek bolo sabar!...</p>
       </div>
     );
   }
@@ -663,7 +663,7 @@ export default function App() {
               >
                 <Users size={15} />
                 <span className="hidden xs:inline">Anggota</span>
-                <span className="xs:hidden">Angg.</span>
+                <span className="xs:hidden">Anggota</span>
               </button>
               <button 
                 onClick={() => setActiveTab('chart')}
