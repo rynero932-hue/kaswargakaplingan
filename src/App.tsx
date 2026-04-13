@@ -87,25 +87,20 @@ const generateId = (prefix: string = "id") => {
 // --- Main Component ---
 export default function App() {
   // --- State ---
-  const [data, setData] = useState<AppData>(() => {
-    const saved = localStorage.getItem("kasAppData");
-    if (saved) {
-      try {
-        return { ...DEFAULT_DATA, ...JSON.parse(saved) };
-      } catch (e) {
-        return DEFAULT_DATA;
-      }
-    }
-    return DEFAULT_DATA;
-  });
+  // Data dimulai dari DEFAULT_DATA, lalu langsung diganti dari Firebase saat load.
+  // localStorage TIDAK digunakan — Firebase adalah satu-satunya sumber data.
+  const [data, setData] = useState<AppData>(DEFAULT_DATA);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Bug Fix: Gunakan ref untuk menyimpan ID dokumen Firebase agar tidak membuat
-  // dokumen baru setiap kali data berubah (overwrite dokumen yang sama).
+  // Ref untuk menyimpan ID dokumen Firebase agar selalu update dokumen yang sama.
   const firebaseDocId = useRef<string | null>(null);
+  // Ref untuk mencegah simpan balik ke Firebase saat data baru saja diambil dari Firebase.
+  const isLoadingFromFirebase = useRef(false);
 
   // 🔥 AMBIL DATA dari Firebase
   const ambilDataFirebase = async () => {
     try {
+      setIsLoading(true);
       const querySnapshot = await getDocs(collection(db, "catatan"));
 
       let dataTerakhir: any = null;
@@ -113,31 +108,31 @@ export default function App() {
 
       querySnapshot.forEach((docSnap) => {
         dataTerakhir = docSnap.data().data;
-        docId = docSnap.id; // simpan ID dokumen
+        docId = docSnap.id;
       });
 
       if (dataTerakhir) {
         firebaseDocId.current = docId;
+        isLoadingFromFirebase.current = true; // tandai: ini load dari Firebase, jangan simpan balik
         setData(dataTerakhir);
         console.log("✅ Data berhasil diambil dari Firebase");
       }
     } catch (error) {
       console.error("❌ Error ambil data:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Bug Fix: simpanKeFirebase sekarang UPDATE dokumen yang sama (setDoc),
-  // bukan membuat dokumen baru terus-menerus (addDoc).
+  // 🔥 SIMPAN DATA ke Firebase
   const simpanKeFirebase = async (dataToSave: any) => {
     try {
       if (firebaseDocId.current) {
-        // Update dokumen yang sudah ada
         await setDoc(doc(db, "catatan", firebaseDocId.current), {
           data: dataToSave,
           updatedAt: new Date()
         });
       } else {
-        // Buat dokumen baru hanya jika belum ada
         const docRef = await addDoc(collection(db, "catatan"), {
           data: dataToSave,
           createdAt: new Date()
@@ -152,13 +147,21 @@ export default function App() {
 
   // 🔥 AMBIL DATA saat pertama load
   useEffect(() => {
+    // Bersihkan localStorage lama agar tidak ada konflik
+    localStorage.removeItem("kasAppData");
     ambilDataFirebase();
   }, []);
 
-  // Bug Fix: Hapus duplikasi useEffect. Hanya ada SATU useEffect untuk simpan data.
+  // 🔥 SIMPAN ke Firebase setiap kali data berubah,
+  // KECUALI saat data baru saja diambil dari Firebase (hindari loop).
   useEffect(() => {
-    localStorage.setItem("kasAppData", JSON.stringify(data));
-    simpanKeFirebase(data);
+    if (isLoadingFromFirebase.current) {
+      isLoadingFromFirebase.current = false;
+      return;
+    }
+    if (!isLoading) {
+      simpanKeFirebase(data);
+    }
   }, [data]);
 
   // --- State lainnya (Bug Fix: dipindah ke dalam fungsi App, bukan di luar) ---
@@ -505,6 +508,18 @@ export default function App() {
       </div>
     );
   };
+
+  // Tampilkan loading screen saat mengambil data dari Firebase
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
+        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
+          <Wallet size={28} />
+        </div>
+        <p className="text-slate-500 font-medium text-sm">Memuat data dari server...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
